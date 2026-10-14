@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}Home | Connect{% endblock %}
+
+{% block content %}
+<section class="welcome">
+    <h1>Welcome to Connect 💜</h1>
+    <p>Share your thoughts, connect with people, and join the conversation.</p>
+</section>
+
+{% if session.get('user_id') %}
+<section class="create-post">
+    <h2>Create a Post</h2>
+    <form action="{{ url_for('create_post') }}" method="POST">
+        <textarea name="content" placeholder="What's on your mind?" required maxlength="1000"></textarea>
+        <button type="submit">Publish Post</button>
+    </form>
+</section>
+{% else %}
+<div class="notice">
+    <p><a href="{{ url_for('login') }}">Log in</a> or
+    <a href="{{ url_for('register') }}">create an account</a> to share a post.</p>
+</div>
+{% endif %}
+
+<section class="feed">
+    <h2>Latest Posts</h2>
+
+    {% for post in posts %}
+    <article class="post-card">
+        <div class="post-header">
+            <a class="username" href="{{ url_for('profile', username=post.username) }}">
+                @{{ post.username }}
+            </a>
+            <small>{{ post.created_at }}</small>
+        </div>
+
+        <p class="post-content">{{ post.content }}</p>
+
+        <div class="post-actions">
+            <span>❤️ {{ post.like_count }} likes</span>
+            <span>💬 {{ post.comment_count }} comments</span>
+        </div>
+
+        {% if session.get('user_id') %}
+        <form action="{{ url_for('like_post', post_id=post.id) }}" method="POST">
+            <button type="submit" class="secondary-button">
+                {{ 'Unlike' if post.liked_by_user else 'Like' }} ❤️
+            </button>
+        </form>
+
+        <form action="{{ url_for('add_comment', post_id=post.id) }}" method="POST" class="comment-form">
+            <input type="text" name="content" placeholder="Write a comment..." required maxlength="500">
+            <button type="submit">Comment</button>
+        </form>
+        {% endif %}
+
+        {% for comment in post.comments %}
+        <div class="comment">
+            <strong>@{{ comment.username }}</strong>
+            <p>{{ comment.content }}</p>
+        </div>
+        {% endfor %}
+    </article>
+    {% else %}
+    <p class="empty-state">No posts yet. Be the first to share something!</p>
+    {% endfor %}
+</section>
+{% endblock %}
