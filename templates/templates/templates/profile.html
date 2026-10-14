@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}@{{ profile_user.username }} | Connect{% endblock %}
+
+{% block content %}
+<section class="profile-card">
+    <div class="avatar">{{ profile_user.username[0]|upper }}</div>
+    <h1>@{{ profile_user.username }}</h1>
+    <p>{{ profile_user.bio or 'This user has not added a bio yet.' }}</p>
+
+    <div class="profile-stats">
+        <span><strong>{{ profile_user.follower_count }}</strong> Followers</span>
+        <span><strong>{{ profile_user.following_count }}</strong> Following</span>
+        <span><strong>{{ profile_user.post_count }}</strong> Posts</span>
+    </div>
+
+    {% if session.get('user_id') == profile_user.id %}
+    <form action="{{ url_for('edit_bio') }}" method="POST" class="bio-form">
+        <label for="bio">Edit your bio</label>
+        <textarea id="bio" name="bio" maxlength="250">{{ profile_user.bio or '' }}</textarea>
+        <button type="submit">Update Bio</button>
+    </form>
+    {% elif session.get('user_id') %}
+    <form action="{{ url_for('follow_user', user_id=profile_user.id) }}" method="POST">
+        <button type="submit">
+            {{ 'Unfollow' if profile_user.is_following else 'Follow' }}
+        </button>
+    </form>
+    {% endif %}
+</section>
+
+<section class="feed">
+    <h2>Posts by @{{ profile_user.username }}</h2>
+
+    {% for post in posts %}
+    <article class="post-card">
+        <small>{{ post.created_at }}</small>
+        <p class="post-content">{{ post.content }}</p>
+        <div class="post-actions">
+            <span>❤️ {{ post.like_count }} likes</span>
+            <span>💬 {{ post.comment_count }} comments</span>
+        </div>
+    </article>
+    {% else %}
+    <p class="empty-state">This user hasn't published any posts yet.</p>
+    {% endfor %}
+</section>
+{% endblock %}
